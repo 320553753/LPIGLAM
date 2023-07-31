@@ -26,28 +26,22 @@ Parameters:
 
 This project contains the following:
 
-- Utils: A series of tools.
+- Datasets:
 
-- Config.py: Configuration file for the model.
+  - ATH: 1896 Arabidopsis thaliana LPIs data
 
-- LossFunction.py: Custom loss function defined in the paper.
+  - ZEA: 44266 Zea mays LPIs data
 
-- Model.py: Implementation of the proposed model described in the paper. 
-
-- RunModel.py: Scripts for training, validation, and testing the model.
-
-- Main.py: Main execution script.
-
-- README.md: Documentation.
-
-- Data:
-
-    - ATH: 1896 Arabidopsis thaliana LPIs data
-
-    - ZEA: 44266 Zea mays LPIs data
-
-    - NPInter: 8316 Human LPIs data
+  - NPInter: 8316 Human LPIs data
 
 - Assets:
 
-    - Model_Figure: Diagram of the model architecture
+  - Model_Figure: Diagram of the model architecture
+
+- Utils: A series of tools.
+- LossFunction.py: Custom loss function defined in the paper.
+- README.md: Documentation.
+- RunModel.py: Scripts for training, validation, and testing the model.
+- Config.py: Configuration file for the model.
+- Main.py: Main execution script.
+- Model.py: Implementation of the proposed model described in the paper. 
