@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 '''
 @Project ：LPIGLAM 
-@File    ：main.py
+@File    ：Main.py
 @IDE     ：PyCharm 
 @Author  ：Shao shaoqi
 @Date    ：28/7/2023 下午2:36 
@@ -10,12 +10,13 @@
 import argparse
 
 from RunModel import run_model
-from model import LPIGLAM
+from Model import LPIGLAM
+
 
 parser = argparse.ArgumentParser(
     prog='LPIGLAM',
     description='LPIGLAM is model in paper: \"Predicting Plant LncRNA-Protein Interactions through Global and Local features based on Attention Mechanism\"',
-    epilog='Model config set by config.py')
+    epilog='Model config set by CConfig.py')
 
 parser.add_argument('-d','--dataSetName', default="ATH",choices=[
                     "ATH", "ZEA", "RPI369","RPI488","RPI1807","RPI2241","NPInter"], help='Enter which dataset to use for the experiment')

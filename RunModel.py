@@ -22,8 +22,8 @@ from sklearn.metrics import (accuracy_score, auc, precision_recall_curve,
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from config import hyperparameter
-from model import LPIGLAM
+from Config import hyperparameter
+from Model import LPIGLAM
 from utils.DataPrepare import get_kfold_data, shuffle_dataset
 from utils.DataSetsFunction import CustomDataSet, collate_fn
 from utils.EarlyStoping import EarlyStopping

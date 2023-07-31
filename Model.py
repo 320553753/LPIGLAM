@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 '''
 @Project ：LPIGLAM 
-@File    ：model.py
+@File    ：Model.py
 @IDE     ：PyCharm 
 @Author  ：Shao shaoqi
 @Date    ：28/7/2023 下午2:37 
