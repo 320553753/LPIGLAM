@@ -2,7 +2,7 @@
 
 
 
-<img src="asserts/model.png"  width="800px"  height="400px"  title="Model Overview" >
+<img src="Asserts/model.png"  width="800px"  height="400px"  title="Model Overview" >
 
 ##  Dependencies
 

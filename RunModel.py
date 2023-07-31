@@ -24,12 +24,12 @@ from tqdm import tqdm
 
 from Config import hyperparameter
 from Model import LPIGLAM
-from utils.DataPrepare import get_kfold_data, shuffle_dataset
-from utils.DataSetsFunction import CustomDataSet, collate_fn
-from utils.EarlyStoping import EarlyStopping
+from Utils.DataPrepare import get_kfold_data, shuffle_dataset
+from Utils.DataSetsFunction import CustomDataSet, collate_fn
+from Utils.EarlyStoping import EarlyStopping
 from LossFunction import CELoss
-from utils.TestModel import test_model
-from utils.ShowResult import show_result
+from Utils.TestModel import test_model
+from Utils.ShowResult import show_result
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
