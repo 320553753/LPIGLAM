@@ -1,5 +1,7 @@
 #  LPIGLAM
 
+***The official PyTorch implementation of "Predicting Plant LncRNA-Protein Interactions through Global and Local features based on Attention Mechanism".***
+
 
 
 <img src="Asserts/model.png"  width="800px"  height="400px"  title="Model Overview" >
