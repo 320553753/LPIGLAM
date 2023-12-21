@@ -68,7 +68,7 @@ class Inception12345(nn.Module):
 class LPIGLAM(nn.Module):
     def __init__(self, hp,
                  protein_MAX_LENGH=1000,
-                 lncRNA_MAX_LENGH=4000):
+                 lncRNA_MAX_LENGH=2000):
         super(LPIGLAM, self).__init__()
         self.dim = hp.char_dim
         self.conv = hp.conv
@@ -81,7 +81,7 @@ class LPIGLAM(nn.Module):
         self.attention_dim = hp.conv * 4
         self.lncRNA_dim_afterCNNs = self.lncRNA_MAX_LENGTH - self.lncRNA_kernel[0] - self.lncRNA_kernel[1] - self.lncRNA_kernel[2] + 3
         self.protein_dim_afterCNNs = self.protein_MAX_LENGTH - self.protein_kernel[0] - self.protein_kernel[1] - self.protein_kernel[2] + 3
-        self.mix_attention_head = 5
+        self.mix_attention_head = 4
 
         self.lncRNA_embed = nn.Embedding(
             self.lncRNA_vocab_size, self.dim, padding_idx=0)
@@ -97,6 +97,28 @@ class LPIGLAM(nn.Module):
             nn.ReLU(),
         )
 
+        # self.lncRNA_CNNs = nn.Sequential(
+        #     Inception135(self.dim, int(self.conv / 2), int(self.conv / 4), int(self.conv / 4), self.lncRNA_kernel[0]),
+        #     nn.ReLU(),
+        #     Inception135(self.conv, self.conv, int(self.conv / 2), int(self.conv / 2), self.lncRNA_kernel[1]),
+        #     nn.ReLU(),
+        #     Inception135(self.conv * 2, self.conv * 2, self.conv, self.conv, self.lncRNA_kernel[2]),
+        #     nn.ReLU(),
+        # )
+
+        # self.lncRNA_CNNs = nn.Sequential(
+        #     Inception12345(self.dim, int(self.conv / 5), int(self.conv / 5), int(self.conv / 5), int(self.conv / 5),
+        #                    int(self.conv / 5), self.lncRNA_kernel[0]),
+        #     nn.ReLU(),
+        #     Inception12345(self.conv, int(self.conv / 5 * 2), int(self.conv / 5 * 2), int(self.conv / 5 * 2),
+        #                    int(self.conv / 5 * 2), int(self.conv / 5 * 2), self.lncRNA_kernel[1]),
+        #     nn.ReLU(),
+        #     Inception12345(self.conv * 2, int(self.conv / 5 * 4), int(self.conv / 5 * 4), int(self.conv / 5 * 4),
+        #                    int(self.conv / 5 * 4), int(self.conv / 5 * 4), self.lncRNA_kernel[2]),
+        #     nn.ReLU(),
+        # )
+
+
         self.lncRNA_max_pool = nn.MaxPool1d(self.lncRNA_dim_afterCNNs)
 
 
@@ -108,6 +130,28 @@ class LPIGLAM(nn.Module):
             Inception123(self.conv * 2, self.conv * 2, self.conv, self.conv, self.protein_kernel[2]),
             nn.ReLU(),
         )
+
+        # self.Protein_CNNs = nn.Sequential(
+        #     Inception135(self.dim, int(self.conv / 2), int(self.conv / 4), int(self.conv / 4), self.protein_kernel[0]),
+        #     nn.ReLU(),
+        #     Inception135(self.conv, self.conv, int(self.conv / 2), int(self.conv / 2), self.protein_kernel[1]),
+        #     nn.ReLU(),
+        #     Inception135(self.conv * 2, self.conv * 2, self.conv, self.conv, self.protein_kernel[2]),
+        #     nn.ReLU(),
+        # )
+
+        # self.Protein_CNNs = nn.Sequential(
+        #     Inception12345(self.dim, int(self.conv / 5), int(self.conv / 5), int(self.conv / 5), int(self.conv / 5),
+        #                    int(self.conv / 5), self.protein_kernel[0]),
+        #     nn.ReLU(),
+        #     Inception12345(self.conv, int(self.conv / 5 * 2), int(self.conv / 5 * 2), int(self.conv / 5 * 2),
+        #                    int(self.conv / 5 * 2), int(self.conv / 5 * 2), self.protein_kernel[1]),
+        #     nn.ReLU(),
+        #     Inception12345(self.conv * 2, int(self.conv / 5 * 4), int(self.conv / 5 * 4), int(self.conv / 5 * 4),
+        #                    int(self.conv / 5 * 4), int(self.conv / 5 * 4), self.protein_kernel[2]),
+        #     nn.ReLU(),
+        # )
+
 
         self.Protein_max_pool = nn.MaxPool1d(self.protein_dim_afterCNNs)
 

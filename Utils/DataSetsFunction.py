@@ -30,7 +30,7 @@ proelement_number = 7
 pro_intab = 'AGVILFPYMTSHNQWRKDEC'
 pro_outtab = 'AAAIIIIYYYYHHHHRRDDC'
 
-def label_rna(line, RNA2INT, MAX_RNA_LEN=4000):
+def label_rna(line, RNA2INT, MAX_RNA_LEN=2000):
     line = line.replace('T', 'U')
     X = np.zeros(MAX_RNA_LEN, dtype=np.int64())
     for i, ch in enumerate(line[:MAX_RNA_LEN]):
@@ -127,7 +127,7 @@ def pro_kmer(seq):
 def collate_fn(batch_data):
     N = len(batch_data)
     rna_ids, protein_ids = [], []
-    rna_max = 4000
+    rna_max = 2000
     protein_max = 1000
     rna_new = torch.zeros((N, rna_max), dtype=torch.long)
     rnakmer_new = torch.zeros((N, 340), dtype=torch.float)

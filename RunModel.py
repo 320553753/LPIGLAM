@@ -13,11 +13,8 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from prefetch_generator import BackgroundGenerator
-from sklearn.metrics import (accuracy_score, auc, precision_recall_curve,
-                             precision_score, recall_score, roc_auc_score)
 
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -26,7 +23,6 @@ from Config import hyperparameter
 from Model import LPIGLAM
 from Utils.DataPrepare import get_kfold_data, shuffle_dataset
 from Utils.DataSetsFunction import CustomDataSet, collate_fn
-from Utils.EarlyStoping import EarlyStopping
 from LossFunction import CELoss
 from Utils.TestModel import test_model
 from Utils.ShowResult import show_result
@@ -60,11 +56,8 @@ def run_model(SEED, DATASET, MODEL, K_Fold, LOSS):
     data_list = shuffle_dataset(data_list, SEED)
 
     '''split dataset to train&validation set and test set'''
-    split_pos = len(data_list) - int(len(data_list) * 0.2)
-    train_data_list = data_list[0:split_pos]
-    test_data_list = data_list[split_pos:-1]
+    train_data_list = data_list
     print('Number of Train&Val set: {}'.format(len(train_data_list)))
-    print('Number of Test set: {}'.format(len(test_data_list)))
 
     '''metrics'''
     Accuracy_List_stable, AUC_List_stable, AUPR_List_stable, Recall_List_stable, Precision_List_stable = [], [], [], [], []
@@ -76,20 +69,21 @@ def run_model(SEED, DATASET, MODEL, K_Fold, LOSS):
 
         train_dataset = CustomDataSet(train_dataset)
         valid_dataset = CustomDataSet(valid_dataset)
-        test_dataset = CustomDataSet(test_data_list)
         train_size = len(train_dataset)
 
         train_dataset_loader = DataLoader(train_dataset, batch_size=hp.Batch_size, shuffle=True, num_workers=0,
                                           collate_fn=collate_fn, drop_last=True)
         valid_dataset_loader = DataLoader(valid_dataset, batch_size=hp.Batch_size, shuffle=False, num_workers=0,
                                           collate_fn=collate_fn, drop_last=True)
-        test_dataset_loader = DataLoader(test_dataset, batch_size=hp.Batch_size, shuffle=False, num_workers=0,
-                                         collate_fn=collate_fn, drop_last=True)
+
 
         """ create model"""
         model = MODEL(hp).to(DEVICE)
 
+        print("Initialize weights")
         """Initialize weights"""
+
+
         weight_p, bias_p = [], []
         for p in model.parameters():
             if p.dim() > 1:
@@ -99,6 +93,9 @@ def run_model(SEED, DATASET, MODEL, K_Fold, LOSS):
                 bias_p += [p]
             else:
                 weight_p += [p]
+
+
+
 
         """create optimizer and scheduler"""
         optimizer = optim.AdamW(
@@ -115,14 +112,13 @@ def run_model(SEED, DATASET, MODEL, K_Fold, LOSS):
             os.makedirs(save_path)
         file_results = save_path + '/' + 'The_results_of_whole_dataset.txt'
 
-        early_stopping = EarlyStopping(
-            savepath=save_path, patience=hp.Patience, verbose=True, delta=0)
-
         """Start training."""
-        print('Training...')
+        print("start training")
+
         for epoch in range(1, hp.Epoch + 1):
-            if early_stopping.early_stop == True:
-                break
+
+
+            print("====================epoch:",epoch,"===================")
             train_pbar = tqdm(
                 enumerate(BackgroundGenerator(train_dataset_loader)),
                 total=len(train_dataset_loader))
@@ -149,70 +145,16 @@ def run_model(SEED, DATASET, MODEL, K_Fold, LOSS):
             train_loss_a_epoch = np.average(
                 train_losses_in_epoch)  # 一次epoch的平均训练loss
 
-            """valid"""
-            valid_pbar = tqdm(
-                enumerate(BackgroundGenerator(valid_dataset_loader)),
-                total=len(valid_dataset_loader))
-            valid_losses_in_epoch = []
-            model.eval()
-            Y, P, S = [], [], []
-            with torch.no_grad():
-                for valid_i, valid_data in valid_pbar:
+            print("loss:",train_loss_a_epoch)
 
-                    valid_lncRNA,valid_lncRNA_kmer, valid_proteins,valid_proteins_kmer, valid_labels = valid_data
 
-                    valid_lncRNA = valid_lncRNA.to(DEVICE)
-                    valid_lncRNA_kmer=valid_lncRNA_kmer.to(DEVICE)
-                    valid_proteins = valid_proteins.to(DEVICE)
-                    valid_proteins_kmer=valid_proteins_kmer.to(DEVICE)
-                    valid_labels = valid_labels.to(DEVICE)
 
-                    valid_scores = model(valid_lncRNA, valid_proteins,valid_lncRNA_kmer,valid_proteins_kmer)
-                    valid_loss = Loss(valid_scores, valid_labels)
-                    valid_losses_in_epoch.append(valid_loss.item())
-                    valid_labels = valid_labels.to('cpu').data.numpy()
-                    valid_scores = F.softmax(
-                        valid_scores, 1).to('cpu').data.numpy()
-                    valid_predictions = np.argmax(valid_scores, axis=1)
-                    valid_scores = valid_scores[:, 1]
-
-                    Y.extend(valid_labels)
-                    P.extend(valid_predictions)
-                    S.extend(valid_scores)
-
-            Precision_dev = precision_score(Y, P)
-            Reacll_dev = recall_score(Y, P)
-            Accuracy_dev = accuracy_score(Y, P)
-            AUC_dev = roc_auc_score(Y, S)
-            tpr, fpr, _ = precision_recall_curve(Y, S)
-            PRC_dev = auc(fpr, tpr)
-            valid_loss_a_epoch = np.average(valid_losses_in_epoch)
-
-            epoch_len = len(str(hp.Epoch))
-            print_msg = (f'[{epoch:>{epoch_len}}/{hp.Epoch:>{epoch_len}}] ' +
-                         f'train_loss: {train_loss_a_epoch:.5f} ' +
-                         f'valid_loss: {valid_loss_a_epoch:.5f} ' +
-                         f'valid_AUC: {AUC_dev:.5f} ' +
-                         f'valid_PRC: {PRC_dev:.5f} ' +
-                         f'valid_Accuracy: {Accuracy_dev:.5f} ' +
-                         f'valid_Precision: {Precision_dev:.5f} ' +
-                         f'valid_Reacll: {Reacll_dev:.5f} ')
-            print(print_msg)
-
-            '''save checkpoint and make decision when early stop'''
-            early_stopping(Accuracy_dev, model, epoch)
-
-        '''load best checkpoint'''
-        model.load_state_dict(torch.load(
-            early_stopping.savepath + '/valid_best_checkpoint.pth'))
 
         '''test model'''
         trainset_test_stable_results, _, _, _, _, _, _, _, _ = test_model(
             model, train_dataset_loader, save_path, DATASET, Loss, DEVICE, dataset_class="Train", FOLD_NUM=1)
-        validset_test_stable_results, _, _, _, _, _,_, _, _ = test_model(
+        testset_test_stable_results, Accuracy_test, Precision_test, Recall_test, AUC_test, PRC_test, Sn_test, Sp_test, Mcc_test = test_model(
             model, valid_dataset_loader, save_path, DATASET, Loss, DEVICE, dataset_class="Valid", FOLD_NUM=1)
-        testset_test_stable_results, Accuracy_test, Precision_test, Recall_test, AUC_test, PRC_test,Sn_test,Sp_test,Mcc_test = test_model(
-            model, test_dataset_loader, save_path, DATASET, Loss, DEVICE, dataset_class="Test", FOLD_NUM=1)
         AUC_List_stable.append(AUC_test)
         Accuracy_List_stable.append(Accuracy_test)
         AUPR_List_stable.append(PRC_test)
@@ -224,7 +166,6 @@ def run_model(SEED, DATASET, MODEL, K_Fold, LOSS):
         with open(save_path + '/' + "The_results_of_whole_dataset.txt", 'a') as f:
             f.write("Test the stable model" + '\n')
             f.write(trainset_test_stable_results + '\n')
-            f.write(validset_test_stable_results + '\n')
             f.write(testset_test_stable_results + '\n')
 
     show_result(DATASET, Accuracy_List_stable, Precision_List_stable,
