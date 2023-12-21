@@ -11,7 +11,7 @@
 class hyperparameter():
     def __init__(self):
         self.Learning_rate = 1e-4
-        self.Epoch = 20
+        self.Epoch = 200
         self.Batch_size = 16
         self.Patience = 20
         self.decay_interval = 10
